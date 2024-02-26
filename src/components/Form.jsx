@@ -3,9 +3,9 @@ import { useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
-// import { msgAction } from "../redux/actions/msgAction";
-import { getMessage } from "../redux/reducers/msgSlice";
-
+import { fetchContent, getMessage } from "../redux/reducers/msgSlice";
+import { addMessage } from "../common/services/messageService";
+import { messageSelector } from "../redux/selectors/messageSelectors";
 const FormSchema = Yup.object({
   message: Yup.string()
     .min(4, "Too Short")
@@ -33,7 +33,7 @@ const ErrorField = styled.span`
   color: red;
 `;
 const Form = () => {
-  const msg = useSelector((state) => state.msg); // ?
+  const msg = useSelector(messageSelector);
   const dispatch = useDispatch();
 
   const formik = useFormik({
@@ -42,16 +42,7 @@ const Form = () => {
     },
     onSubmit: (values) => {
       const requestData = { message: values.message };
-      fetch("http://localhost:3000/messages/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestData),
-      })
-        .then((res) => res.json())
-        .then((result) => dispatch(getMessage(result.message)))
-        .catch((error) => console.error(error));
+      dispatch(fetchContent(requestData))
       values.message = "";
     },
     validationSchema: FormSchema,
@@ -62,7 +53,7 @@ const Form = () => {
       .then((res) => res.json())
       .then((result) => dispatch(getMessage(result.message)))
       .catch(error => console.error(error.message))
-  });
+  }, []);
 
   return (
     <form onSubmit={formik.handleSubmit}>
